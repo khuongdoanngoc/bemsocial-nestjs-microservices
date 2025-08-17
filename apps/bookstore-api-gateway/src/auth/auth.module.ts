@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common'
-import { BooksService } from './books.service'
-import { BooksController } from './books.controller'
-import { Transport, ClientsModule } from '@nestjs/microservices'
+import { AuthService } from './auth.service'
+import { AuthController } from './auth.controller'
+import { ClientsModule, Transport } from '@nestjs/microservices'
 
 @Module({
     imports: [
         ClientsModule.register([
             {
-                name: 'BOOKS_SERVICE',
+                name: 'AUTH_SERVICE',
                 transport: Transport.RMQ,
                 options: {
                     urls: ['amqp://localhost:5672'],
-                    queue: 'books_queue',
-                    exchange: 'books_exchange',
+                    queue: 'auth_queue',
+                    exchange: 'auth_exchange',
                     exchangeType: 'direct',
                     queueOptions: {
                         durable: true,
@@ -21,7 +21,7 @@ import { Transport, ClientsModule } from '@nestjs/microservices'
             },
         ]),
     ],
-    controllers: [BooksController],
-    providers: [BooksService],
+    controllers: [AuthController],
+    providers: [AuthService],
 })
-export class BooksModule {}
+export class AuthModule {}

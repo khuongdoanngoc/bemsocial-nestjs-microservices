@@ -11,3 +11,12 @@ Content-Type: application/json
     "lastName": "Nguyen Thuc",
     "role": "USER"
 }
+
+### Sign in
+POST {{baseUrl}}/auth/sign-in
+Content-Type: application/json
+
+{
+    "email": "khang.nt@gmail.com",
+    "password": "123456aA@$"
+}

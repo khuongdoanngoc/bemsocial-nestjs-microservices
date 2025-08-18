@@ -7,7 +7,7 @@ import { ConfigModule } from '@nestjs/config'
         AuthModule,
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: '.env',
+            envFilePath: 'apps/auth-service/.env',
         }),
         TypeOrmModule.forRoot({
             type: 'postgres',

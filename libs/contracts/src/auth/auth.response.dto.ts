@@ -24,11 +24,17 @@ export class SignUpResponseDto {
 }
 
 export class SignInResponseDto {
+    @Expose()
     accessToken: string
+
+    @Expose()
     refreshToken: string
-    user: {
-        email: string
-        firstName?: string
-        lastName?: string
-    }
+
+    @Expose()
+    user: SignUpResponseDto
+}
+
+export class RefreshTokenResponseDto {
+    @Expose()
+    accessToken: string
 }

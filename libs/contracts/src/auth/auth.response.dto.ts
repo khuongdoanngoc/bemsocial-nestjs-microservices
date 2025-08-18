@@ -1,9 +1,26 @@
+import { Expose } from 'class-transformer'
+
 export class SignUpResponseDto {
-    user: {
-        email: string
-        firstName?: string
-        lastName?: string
-    }
+    @Expose()
+    id: string
+
+    @Expose()
+    email: string
+
+    @Expose()
+    firstName: string
+
+    @Expose()
+    lastName: string
+
+    @Expose()
+    role: string
+
+    @Expose()
+    createdAt: Date
+
+    @Expose()
+    updatedAt: Date
 }
 
 export class SignInResponseDto {

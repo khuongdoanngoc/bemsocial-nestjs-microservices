@@ -11,12 +11,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @MessagePattern(AUTH_PATTERN.SIGN_UP)
-    async signUp(signUpDto: SignUpDto): Promise<ApiResponseDto<User>> {
-        const user = await this.authService.signUp(signUpDto)
-        return {
-            statusCode: HttpStatus.CREATED,
-            message: 'User signed up successfully',
-            data: user,
-        }
+    async signUp(signUpDto: SignUpDto): Promise<User> {
+        return await this.authService.signUp(signUpDto)
     }
 }

@@ -1,10 +1,10 @@
 import { Controller } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { MessagePattern } from '@nestjs/microservices'
-import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/auth/auth.request.dto'
-import { AUTH_PATTERN } from '@app/contracts/auth/auth.pattern'
+import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
+import { AUTH_PATTERN } from '@app/contracts/dtos/auth/auth.pattern'
 import { User } from './entities/user.entity'
-import { RefreshTokenResponseDto, SignInResponseDto } from '@app/contracts/auth/auth.response.dto'
+import { RefreshTokenResponseDto, SignInResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
 
 @Controller()
 export class AuthController {
@@ -25,5 +25,5 @@ export class AuthController {
     @MessagePattern(AUTH_PATTERN.REFRESH_TOKEN)
     async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<RefreshTokenResponseDto> {
         return await this.authService.refreshToken(refreshTokenDto)
-    }   
+    }
 }

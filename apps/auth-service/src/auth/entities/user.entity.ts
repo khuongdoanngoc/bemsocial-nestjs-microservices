@@ -1,19 +1,8 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { BaseUser } from '@app/contracts/entities/base-user.entity'
+import { Column, Entity } from 'typeorm'
 
 @Entity({ name: 'users' })
-export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
-
-    @Column({ type: 'varchar', length: 255 })
-    firstName: string
-
-    @Column({ type: 'varchar', length: 255 })
-    lastName: string
-
-    @Column({ type: 'varchar', length: 255, unique: true })
-    email: string
-
+export class User extends BaseUser {
     @Column({ type: 'varchar', length: 255 })
     password: string
 
@@ -23,10 +12,4 @@ export class User {
         default: 'USER',
     })
     role: 'USER' | 'SELLER' | 'ADMIN'
-
-    @CreateDateColumn()
-    createdAt: Date
-
-    @UpdateDateColumn()
-    updatedAt: Date
 }

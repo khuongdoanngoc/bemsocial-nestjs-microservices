@@ -11,6 +11,8 @@ async function bootstrap() {
             queueOptions: {
                 durable: true,
             },
+            exchange: 'auth_exchange',
+            exchangeType: 'fanout',
         },
     })
     await app.listen()

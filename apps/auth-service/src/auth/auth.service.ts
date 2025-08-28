@@ -1,15 +1,20 @@
 import * as bcrypt from 'bcrypt'
-import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/auth/auth.request.dto'
-import { HttpStatus, Injectable } from '@nestjs/common'
-import { RpcException } from '@nestjs/microservices'
+import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
+import { HttpStatus, Inject, Injectable } from '@nestjs/common'
+import { ClientProxy, RpcException } from '@nestjs/microservices'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { User } from './entities/user.entity'
-import { RefreshTokenResponseDto, SignInResponseDto, SignUpResponseDto } from '@app/contracts/auth/auth.response.dto'
+import {
+    RefreshTokenResponseDto,
+    SignInResponseDto,
+    SignUpResponseDto,
+} from '@app/contracts/dtos/auth/auth.response.dto'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { plainToInstance } from 'class-transformer'
 import { RefreshToken } from './entities/refresh-token.entity'
+import { BaseUser } from '@app/contracts/entities/base-user.entity'
 
 @Injectable()
 export class AuthService {
@@ -23,6 +28,8 @@ export class AuthService {
         private jwtService: JwtService,
 
         private configService: ConfigService,
+
+        @Inject('AUTH_PUBLISHER') private readonly client: ClientProxy,
     ) {}
 
     async signUp(signUpDto: SignUpDto): Promise<User> {
@@ -38,10 +45,22 @@ export class AuthService {
                 password: await bcrypt.hash(signUpDto.password, 10),
             })
             await this.userRepository.save(user)
+
+            this.emitUserCreated(user)
+
             return user
         } catch (error) {
-            throw new RpcException({ statusCode: error.error.statusCode, message: error.error.message })
+            console.log(error)
+            throw new RpcException({
+                statusCode: error.error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+                message: error.error.message || 'An unexpected error occurred',
+            })
         }
+    }
+
+    private async emitUserCreated(user: User) {
+        const baseUser = BaseUser.toBaseUser(user)
+        this.client.emit('user.created', baseUser)
     }
 
     async signIn(signInDto: SignInDto): Promise<SignInResponseDto> {
@@ -57,13 +76,7 @@ export class AuthService {
                 throw new RpcException({
                     statusCode: HttpStatus.UNAUTHORIZED,
                     message: 'Invalid credentials!',
-                    error: 'Un',
                 })
-            }
-            const payload = {
-                id: user.id,
-                email: user.email,
-                role: user.role,
             }
             const accessToken = await this.generateTokens(user, '1h', this.configService.get('JWT_ACCESS_TOKEN_SECRET'))
             const refreshToken = await this.generateTokens(
@@ -78,7 +91,10 @@ export class AuthService {
             }
         } catch (error) {
             console.log(error)
-            throw new RpcException({ statusCode: error.error.statusCode, message: error.error.message })
+            throw new RpcException({
+                statusCode: error.error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+                message: error.error.message || 'An unexpected error occurred',
+            })
         }
     }
 

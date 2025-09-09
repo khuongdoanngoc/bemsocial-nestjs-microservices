@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt'
 import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
 import { HttpStatus, Inject, Injectable } from '@nestjs/common'
-import { ClientProxy, RpcException } from '@nestjs/microservices'
+import { RpcException } from '@nestjs/microservices'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { User } from './entities/user.entity'
@@ -15,6 +15,7 @@ import { ConfigService } from '@nestjs/config'
 import { plainToInstance } from 'class-transformer'
 import { RefreshToken } from './entities/refresh-token.entity'
 import { BaseUser } from '@app/contracts/entities/base-user.entity'
+import { ClientProxy } from '@nestjs/microservices'
 
 @Injectable()
 export class AuthService {
@@ -29,7 +30,7 @@ export class AuthService {
 
         private configService: ConfigService,
 
-        @Inject('AUTH_PUBLISHER') private readonly client: ClientProxy,
+        @Inject('AUTH_PRODUCER') private readonly authProducer: ClientProxy,
     ) {}
 
     async signUp(signUpDto: SignUpDto): Promise<User> {
@@ -60,7 +61,12 @@ export class AuthService {
 
     private async emitUserCreated(user: User) {
         const baseUser = BaseUser.toBaseUser(user)
-        this.client.emit('user.created', baseUser)
+        try {
+            console.log('emitting user created event')
+            this.authProducer.emit('user.created', baseUser)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     async signIn(signInDto: SignInDto): Promise<SignInResponseDto> {
@@ -84,6 +90,7 @@ export class AuthService {
                 '30d',
                 this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
             )
+            this.authProducer.emit('user.routing-key', { data: 'hello world' })
             return {
                 accessToken,
                 refreshToken,

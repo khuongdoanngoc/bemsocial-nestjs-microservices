@@ -8,6 +8,7 @@ export class UserSyncController {
 
     @EventPattern('user.created')
     async handleUserCreated(data: any) {
+        console.log('user created', data)
         return this.userSyncService.syncUser(data.id, data)
     }
 }

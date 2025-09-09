@@ -14,7 +14,6 @@ import { AuthModule } from '../auth/auth.module'
                 options: {
                     urls: ['amqp://localhost:5672'],
                     queue: 'profile_queue',
-                    exchange: 'profile_exchange',
                 },
             },
         ]),

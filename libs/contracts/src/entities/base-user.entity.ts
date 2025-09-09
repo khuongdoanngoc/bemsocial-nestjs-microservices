@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { ROLES } from '../dtos/enums/roles.enum'
 
 export abstract class BaseUser {
     @PrimaryGeneratedColumn('uuid')
@@ -13,6 +14,12 @@ export abstract class BaseUser {
     @Column({ type: 'varchar', length: 255, unique: true })
     email: string
 
+    @Column({ type: 'enum', enum: ROLES, default: ROLES.USER })
+    role: ROLES
+
+    @Column({ nullable: true, type: 'varchar', length: 255 })
+    avatar: string
+
     @CreateDateColumn()
     createdAt: Date
 
@@ -26,6 +33,8 @@ export abstract class BaseUser {
             firstName: source.firstName,
             lastName: source.lastName,
             email: source.email,
+            role: source.role,
+            avatar: source.avatar,
             createdAt: source.createdAt,
             updatedAt: source.updatedAt,
         }

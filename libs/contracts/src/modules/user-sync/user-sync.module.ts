@@ -12,7 +12,9 @@ export class UserSyncModule {
     static forFeature<T>(entity: new () => T): DynamicModule {
         return {
             module: UserSyncModule,
-            imports: [TypeOrmModule.forFeature([entity])],
+            imports: [
+                TypeOrmModule.forFeature([entity]),
+            ],
             controllers: [UserSyncController],
             providers: [
                 {

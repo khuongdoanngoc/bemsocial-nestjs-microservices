@@ -10,9 +10,13 @@ export class ProfileService {
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
         return await lastValueFrom(
-            this.client
+            this.client 
                 .send(PROFILE_PATTERN.GET_PROFILE, { userId })
                 .pipe(map(response => response as GetProfileResponseDto)),
         )
+    }
+
+    async updateProfileByUserID(userId: string): Promise<void> {
+        await lastValueFrom(this.client.send(PROFILE_PATTERN.UPDATE_PROFILE, { userId }).pipe(map(() => null)))
     }
 }

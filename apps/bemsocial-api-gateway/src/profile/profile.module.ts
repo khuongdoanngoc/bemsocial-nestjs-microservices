@@ -9,11 +9,14 @@ import { AuthModule } from '../auth/auth.module'
         AuthModule,
         ClientsModule.register([
             {
-                name: 'PROFILE_SERVICE',
+                name: 'USER_SERVICE',
                 transport: Transport.RMQ,
                 options: {
                     urls: ['amqp://localhost:5672'],
-                    queue: 'profile_queue',
+                    queue: 'user_queue',
+                    queueOptions: {
+                        durable: true,
+                    },
                 },
             },
         ]),

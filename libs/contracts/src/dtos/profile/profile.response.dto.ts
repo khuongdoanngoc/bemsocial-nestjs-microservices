@@ -1,5 +1,7 @@
+import { Types } from 'mongoose'
+
 export class GetProfileResponseDto {
-    id: string
+    _id: Types.ObjectId
     firstName: string
     lastName: string
     email: string

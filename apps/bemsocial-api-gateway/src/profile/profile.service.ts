@@ -6,7 +6,7 @@ import { lastValueFrom, map } from 'rxjs'
 
 @Injectable()
 export class ProfileService {
-    constructor(@Inject('PROFILE_SERVICE') private readonly client: ClientProxy) {}
+    constructor(@Inject('USER_SERVICE') private readonly client: ClientProxy) {}
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
         return await lastValueFrom(

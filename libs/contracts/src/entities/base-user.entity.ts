@@ -1,35 +1,36 @@
-import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { Prop, Schema } from '@nestjs/mongoose'
+import { Document, Types } from 'mongoose'
 import { ROLES } from '../dtos/enums/roles.enum'
 
-export abstract class BaseUser {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+@Schema({ timestamps: true })
+export abstract class BaseUser extends Document {
+    declare _id: Types.ObjectId
 
-    @Column({ type: 'varchar', length: 255 })
+    @Prop({ required: true })
     firstName: string
 
-    @Column({ type: 'varchar', length: 255 })
+    @Prop({ nullable: true })
     lastName: string
 
-    @Column({ type: 'varchar', length: 255, unique: true })
+    @Prop({ required: true, unique: true })
     email: string
 
-    @Column({ type: 'enum', enum: ROLES, default: ROLES.USER })
+    @Prop({ type: String, enum: ROLES, default: ROLES.USER })
     role: ROLES
 
-    @Column({ nullable: true, type: 'varchar', length: 255 })
-    avatar: string
+    @Prop()
+    avatar?: string
 
-    @CreateDateColumn()
+    @Prop({ type: Date, default: Date.now })
     createdAt: Date
 
-    @UpdateDateColumn()
+    @Prop({ type: Date, default: Date.now })
     updatedAt: Date
 
     // Static method to create BaseUser from any source
     static toBaseUser<T extends BaseUser>(source: T): Omit<BaseUser, 'toBaseUser'> {
         return {
-            id: source.id,
+            id: source._id,
             firstName: source.firstName,
             lastName: source.lastName,
             email: source.email,
@@ -37,7 +38,7 @@ export abstract class BaseUser {
             avatar: source.avatar,
             createdAt: source.createdAt,
             updatedAt: source.updatedAt,
-        }
+        } as any
     }
 
     // Instance method

@@ -1,8 +1,9 @@
 import { Expose } from 'class-transformer'
+import { Types } from 'mongoose'
 
 export class SignUpResponseDto {
     @Expose()
-    id: string
+    _id: Types.ObjectId
 
     @Expose()
     email: string

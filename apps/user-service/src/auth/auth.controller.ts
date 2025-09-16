@@ -4,14 +4,14 @@ import { MessagePattern } from '@nestjs/microservices'
 import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
 import { AUTH_PATTERN } from '@app/contracts/dtos/auth/auth.pattern'
 import { RefreshTokenResponseDto, SignInResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
-import { UserSchema } from './schemas/user.schema'
+import { User } from './schemas/user.schema'
 
 @Controller()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @MessagePattern(AUTH_PATTERN.SIGN_UP)
-    async signUp(signUpDto: SignUpDto): Promise<UserSchema> {
+    async signUp(signUpDto: SignUpDto): Promise<User> {
         return await this.authService.signUp(signUpDto)
     }
 

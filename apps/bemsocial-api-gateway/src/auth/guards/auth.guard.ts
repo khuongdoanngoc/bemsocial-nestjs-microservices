@@ -26,18 +26,21 @@ export class AuthGuard implements CanActivate {
                 throw new UnauthorizedException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Unauthorized' })
             }
             const decoded = await this.validateToken(token)
+
             if (!decoded)
                 throw new UnauthorizedException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Unauthorized' })
             request.user = decoded
             return true
         } catch (error) {
+            console.log('Error in AuthGuard', error)
             throw new UnauthorizedException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Unauthorized' })
         }
     }
 
     private extractTokenFromHeader(request: Request): string | undefined {
-        const [type, token] = request.headers.get('Authorization')?.split(' ') ?? []
-        return type === 'Bearer' ? token : undefined
+        const authHeader = request.headers['authorization'] || request.headers['Authorization'];        
+        const [type, token] = authHeader?.split(' ') ?? [];
+        return type === 'Bearer' ? token : undefined;
     }
 
     private async validateToken(token: string) {
@@ -47,6 +50,7 @@ export class AuthGuard implements CanActivate {
             })
             return decoded
         } catch (error) {
+            console.log('Error in validateToken', error)
             throw new UnauthorizedException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Unauthorized' })
         }
     }

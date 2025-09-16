@@ -3,7 +3,7 @@ import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { RpcException } from '@nestjs/microservices'
 import { Model } from 'mongoose'
-import { UserSchema } from './schemas/user.schema'
+import { User } from './schemas/user.schema'
 import {
     RefreshTokenResponseDto,
     SignInResponseDto,
@@ -12,24 +12,28 @@ import {
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { plainToInstance } from 'class-transformer'
-import { RefreshTokenSchema } from './schemas/refresh-token.schema'
+import { RefreshToken } from './schemas/refresh-token.schema'
 import { InjectModel } from '@nestjs/mongoose'
+import { Profile } from '../profile/schemas/profile.schema'
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectModel(UserSchema.name)
-        private userModel: Model<UserSchema>,
+        @InjectModel(User.name)
+        private userModel: Model<User>,
 
-        @InjectModel(RefreshTokenSchema.name)
-        private refreshTokenModel: Model<RefreshTokenSchema>,
+        @InjectModel(RefreshToken.name)
+        private refreshTokenModel: Model<RefreshToken>,
 
         private jwtService: JwtService,
 
         private configService: ConfigService,
+
+        @InjectModel(Profile.name)
+        private profileModel: Model<Profile>,
     ) {}
 
-    async signUp(signUpDto: SignUpDto): Promise<UserSchema> {
+    async signUp(signUpDto: SignUpDto): Promise<User> {
         try {
             const existingUser = await this.userModel.findOne({
                 email: signUpDto.email,
@@ -41,7 +45,8 @@ export class AuthService {
                 ...signUpDto,
                 password: await bcrypt.hash(signUpDto.password, 10),
             })
-            await user.save()   
+            await user.save()
+            await this.createDefaultProfile(user)
             return user
         } catch (error) {
             console.log(error)
@@ -52,7 +57,7 @@ export class AuthService {
         }
     }
 
-    private async emitUserCreated(user: UserSchema) {
+    private async emitUserCreated(user: User) {
         const baseUser = user.toBaseUser()
         try {
             // this.authProducer.emit('user.created', baseUser)
@@ -109,7 +114,7 @@ export class AuthService {
             throw new RpcException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Refresh token expired!' })
         }
         const accessToken = await this.generateTokens(
-            refreshTokenEntity.user as unknown as UserSchema,
+            refreshTokenEntity.user as unknown as User,
             '1h',
             this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
         )
@@ -140,7 +145,7 @@ export class AuthService {
         }
     }
 
-    private async generateTokens(user: UserSchema, expiresIn: string, secret: string | undefined) {
+    private async generateTokens(user: User, expiresIn: string, secret: string | undefined) {
         if (!secret) {
             throw new RpcException({ statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Secret is required!' })
         }
@@ -154,5 +159,23 @@ export class AuthService {
             secret,
         })
         return token
+    }
+
+    private async createDefaultProfile(user: User) {
+        try {
+            const defaultProfile = new this.profileModel({
+                user: user._id,
+                description: '',
+                phone: '',
+                birthDate: new Date(),
+                cover: '',
+                followers: 0,
+                following: 0,
+                createdAt: new Date(),
+            })
+            await defaultProfile.save()
+        } catch (error) {
+            console.log('Error creating default profile', error)
+        }
     }
 }

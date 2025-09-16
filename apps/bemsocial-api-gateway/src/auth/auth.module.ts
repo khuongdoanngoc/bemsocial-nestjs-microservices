@@ -32,11 +32,14 @@ import { RolesGuard } from './guards/roles.guard'
     controllers: [AuthController],
     providers: [
         AuthService,
-        RolesGuard,
         {
             provide: APP_GUARD,
             useClass: AuthGuard,
         },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
+        }
     ],
     exports: [JwtModule],
 })

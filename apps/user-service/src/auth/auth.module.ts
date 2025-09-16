@@ -2,19 +2,22 @@ import { Module } from '@nestjs/common'
 
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
-import { RefreshTokenSchema } from './schemas/refresh-token.schema'
-import { UserSchema } from './schemas/user.schema'
+import { RefreshToken    } from './schemas/refresh-token.schema'
+import { User } from './schemas/user.schema'
 import { JwtService } from '@nestjs/jwt'
 import { MongooseModule, SchemaFactory } from '@nestjs/mongoose'
+import { ProfileService } from '../profile/profile.service'
+import { ProfileModule } from '../profile/profile.module'
 
 @Module({
     imports: [
         MongooseModule.forFeature([
-            { name: UserSchema.name, schema: SchemaFactory.createForClass(UserSchema) },
-            { name: RefreshTokenSchema.name, schema: SchemaFactory.createForClass(RefreshTokenSchema) },
+            { name: User.name, schema: SchemaFactory.createForClass(User) },
+            { name: RefreshToken.name, schema: SchemaFactory.createForClass(RefreshToken) },
         ]),
+        ProfileModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtService],
+    providers: [AuthService, JwtService, ProfileService],
 })
-export class AuthModule {}
+export class AuthModule {} 

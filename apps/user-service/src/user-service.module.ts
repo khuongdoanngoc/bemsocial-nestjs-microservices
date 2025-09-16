@@ -13,8 +13,8 @@ import { MongooseModule } from '@nestjs/mongoose'
             envFilePath: 'apps/user-service/.env',
         }),
         MongooseModule.forRoot(
-            process.env.MONGO_URI || 'mongodb://admin:admin@localhost:27017/bem_social?authSource=admin',
-        ), 
+            process.env.MONGO_URI || 'mongodb://admin:admin@localhost:27017/user_service?authSource=admin',
+        ),  
     ],
 })
 export class UserServiceModule {}

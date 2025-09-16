@@ -8,6 +8,10 @@ export class GetProfileResponseDto {
     phone: string
     birthDate: Date
     avatar: string
+    cover: string
+    description: string
+    followers: number
+    following: number
     createdAt: Date
     updatedAt: Date
 }

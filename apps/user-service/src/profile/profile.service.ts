@@ -1,31 +1,31 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
-
+import { Model, Types } from 'mongoose'
 import { GetProfileResponseDto } from '@app/contracts/dtos/profile/profile.response.dto'
 import { RpcException } from '@nestjs/microservices'
-import { ProfileSchema } from './schemas/profile.schema'
-import { UserSchema } from '../auth/schemas/user.schema'
+import { Profile } from './schemas/profile.schema'
+import { User } from '../auth/schemas/user.schema'
 
 @Injectable()
 export class ProfileService {
     constructor(
-        @InjectModel(ProfileSchema.name)
-        private profileModel: Model<ProfileSchema>,
+        @InjectModel(Profile.name)
+        private profileModel: Model<Profile>,
     ) {}
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
         try {
-            const profile = await this.profileModel.findOne({ user: userId }).populate('user').exec()
+            const profile = await this.profileModel
+                .findOne({ user: new Types.ObjectId(userId) })
+                .populate('user')
+                .exec()
             if (!profile) {
                 throw new RpcException({
                     statusCode: HttpStatus.NOT_FOUND,
                     message: 'Profile not found',
                 })
             }
-            // After populate, profile.user will be a UserSchema object
-            const user = profile.user as unknown as UserSchema
-
+            const user = profile.user as unknown as User
             return this.mapToProfileResponse(user, profile)
         } catch (error) {
             console.log(error)
@@ -36,9 +36,9 @@ export class ProfileService {
         }
     }
 
-    private mapToProfileResponse(user: UserSchema, profile: ProfileSchema): GetProfileResponseDto {
+    private mapToProfileResponse(user: User, profile: Profile): GetProfileResponseDto {
         const { _id, firstName, lastName, email, avatar = '', createdAt, updatedAt } = user
-        const { phone, birthDate } = profile
+        const { phone, birthDate, cover, description, followers, following } = profile
 
         return {
             _id,
@@ -48,6 +48,10 @@ export class ProfileService {
             phone,
             birthDate,
             avatar,
+            cover,
+            description,
+            followers,
+            following,
             createdAt,
             updatedAt,
         }

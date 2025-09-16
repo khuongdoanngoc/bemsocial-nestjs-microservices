@@ -1,10 +1,10 @@
 import { Prop, Schema } from '@nestjs/mongoose'
-import { UserSchema } from '../../auth/schemas/user.schema'
+import { User } from '../../auth/schemas/user.schema'
 import { Types } from 'mongoose'
 
 @Schema({ timestamps: true })
-export class ProfileSchema {
-    @Prop({ type: Types.ObjectId, ref: UserSchema.name })
+export class Profile {
+    @Prop({ type: Types.ObjectId, ref: User.name })
     user: Types.ObjectId
 
     @Prop({ nullable: true, type: String })

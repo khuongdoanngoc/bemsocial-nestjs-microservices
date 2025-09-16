@@ -18,11 +18,9 @@ services:
         ports:
             - '27017:27017'
         environment:
-            - MONGO_USER=admin
-            - MONGO_PASSWORD=admin
             - MONGO_INITDB_ROOT_USERNAME=admin
             - MONGO_INITDB_ROOT_PASSWORD=admin
-            - MONGO_INITDB_DATABASE=bem_social
+            - MONGO_INITDB_DATABASE=admin
         volumes:
             - mongodb-data:/var/lib/mongodb/data
         networks:

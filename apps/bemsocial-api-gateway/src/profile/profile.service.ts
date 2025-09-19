@@ -1,22 +1,25 @@
 import { PROFILE_PATTERN } from '@app/contracts/dtos/profile/profile.pattern'
 import { GetProfileResponseDto } from '@app/contracts/dtos/profile/profile.response.dto'
-import { Inject, Injectable } from '@nestjs/common'
-import { ClientProxy } from '@nestjs/microservices'
-import { lastValueFrom, map } from 'rxjs'
+import { Injectable } from '@nestjs/common'
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service'
 
 @Injectable()
 export class ProfileService {
-    constructor(@Inject('USER_SERVICE') private readonly client: ClientProxy) {}
+    constructor(private readonly rabbitMQService: RabbitMQService) {}
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
-        return await lastValueFrom(
-            this.client 
-                .send(PROFILE_PATTERN.GET_PROFILE, { userId })
-                .pipe(map(response => response as GetProfileResponseDto)),
-        )
+        return await this.rabbitMQService.request<GetProfileResponseDto>({
+            exchange: 'user.direct',
+            routingKey: PROFILE_PATTERN.GET_PROFILE,
+            payload: { userId },
+        })
     }
 
     async updateProfileByUserID(userId: string): Promise<void> {
-        await lastValueFrom(this.client.send(PROFILE_PATTERN.UPDATE_PROFILE, { userId }).pipe(map(() => null)))
+        await this.rabbitMQService.request<void>({
+            exchange: 'user.direct',
+            routingKey: PROFILE_PATTERN.UPDATE_PROFILE,
+            payload: { userId },
+        })
     }
 }

@@ -1,22 +1,43 @@
 import { AUTH_PATTERN } from '@app/contracts/dtos/auth/auth.pattern'
 import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
-import { Inject, Injectable } from '@nestjs/common'
-import { ClientProxy } from '@nestjs/microservices'
-import { lastValueFrom } from 'rxjs'
+import { Injectable } from '@nestjs/common'
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service'
+import { SignInResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
+import { RefreshTokenResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
+import { SignUpResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
 
 @Injectable()
 export class AuthService {
-    constructor(@Inject('USER_SERVICE') private readonly client: ClientProxy) {}
+    constructor(private readonly rabbitMQService: RabbitMQService) {}
 
     async signUp(signUpDto: SignUpDto) {
-        return await lastValueFrom(this.client.send(AUTH_PATTERN.SIGN_UP, signUpDto))
+        try {
+            const user = await this.rabbitMQService.request<SignUpResponseDto>({
+                exchange: 'user.direct',
+                routingKey: AUTH_PATTERN.SIGN_UP,
+                payload: signUpDto,
+            })
+            console.log(user)
+            return user
+        } catch (error) {
+            console.log(error)
+            throw error
+        }
     }
 
     async signIn(signInDto: SignInDto) {
-        return await lastValueFrom(this.client.send(AUTH_PATTERN.SIGN_IN, signInDto))
+        return await this.rabbitMQService.request<SignInResponseDto>({
+            exchange: 'user.direct',
+            routingKey: AUTH_PATTERN.SIGN_IN,
+            payload: signInDto,
+        })
     }
 
     async refreshToken(refreshTokenDto: RefreshTokenDto) {
-        return await lastValueFrom(this.client.send(AUTH_PATTERN.REFRESH_TOKEN, refreshTokenDto))
+        return await this.rabbitMQService.request<RefreshTokenResponseDto>({
+            exchange: 'user.direct',
+            routingKey: AUTH_PATTERN.REFRESH_TOKEN,
+            payload: refreshTokenDto,
+        })
     }
 }

@@ -34,13 +34,17 @@ export class AuthService {
     ) {}
 
     async signUp(signUpDto: SignUpDto): Promise<User> {
-        try {
-            const existingUser = await this.userModel.findOne({
-                email: signUpDto.email,
+        const existingUser = await this.userModel.findOne({
+            email: signUpDto.email,
+        })
+        if (existingUser) {
+            throw new RpcException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'User already exists!',
             })
-            if (existingUser) {
-                throw new RpcException({ statusCode: HttpStatus.BAD_REQUEST, message: 'User already exists!' })
-            }
+        }
+
+        try {
             const user = new this.userModel({
                 ...signUpDto,
                 password: await bcrypt.hash(signUpDto.password, 10),
@@ -51,8 +55,8 @@ export class AuthService {
         } catch (error) {
             console.log(error)
             throw new RpcException({
-                statusCode: error.error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
-                message: error.error.message || 'An unexpected error occurred',
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to create user',
             })
         }
     }

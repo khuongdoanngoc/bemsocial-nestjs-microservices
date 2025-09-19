@@ -3,8 +3,11 @@ import { AuthService } from './auth.service'
 import { Post } from '@nestjs/common'
 import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
 import { ApiResponseDto } from '@app/contracts/dtos/api/api.response.dto'
-import { RefreshTokenResponseDto, SignInResponseDto, SignUpResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
-import { plainToInstance } from 'class-transformer'
+import {
+    RefreshTokenResponseDto,
+    SignInResponseDto,
+    SignUpResponseDto,
+} from '@app/contracts/dtos/auth/auth.response.dto'
 import { Public } from './decorators/public.decorator'
 
 @Controller('auth')
@@ -15,7 +18,7 @@ export class AuthController {
     @Post('sign-up')
     async signUp(@Body() signUpDto: SignUpDto): Promise<ApiResponseDto<SignUpResponseDto>> {
         const user = await this.authService.signUp(signUpDto)
-        const data = plainToInstance(SignUpResponseDto, user, { excludeExtraneousValues: true })
+        const data = user as SignUpResponseDto
         return {
             statusCode: HttpStatus.CREATED,
             message: 'User signed up successfully!',

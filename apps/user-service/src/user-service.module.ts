@@ -3,6 +3,7 @@ import { AuthModule } from './auth/auth.module'
 import { ProfileModule } from './profile/profile.module'
 import { ConfigModule } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module'
 
 @Module({
     imports: [
@@ -14,7 +15,8 @@ import { MongooseModule } from '@nestjs/mongoose'
         }),
         MongooseModule.forRoot(
             process.env.MONGO_URI || 'mongodb://admin:admin@localhost:27017/user_service?authSource=admin',
-        ),  
+        ),
+        RabbitMQModule,
     ],
 })
 export class UserServiceModule {}

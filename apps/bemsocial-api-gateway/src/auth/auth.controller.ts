@@ -35,7 +35,7 @@ export class AuthController {
             message: 'User signed in successfully!',
             data: user,
         }
-    }
+    } 
 
     @Public()
     @Post('refresh-token')

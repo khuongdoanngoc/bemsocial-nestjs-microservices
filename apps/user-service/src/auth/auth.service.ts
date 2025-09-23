@@ -11,10 +11,11 @@ import {
 } from '@app/contracts/dtos/auth/auth.response.dto'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
-import { plainToInstance } from 'class-transformer'
+// import { plainToInstance } from 'class-transformer' // Không cần thiết nữa
 import { RefreshToken } from './schemas/refresh-token.schema'
 import { InjectModel } from '@nestjs/mongoose'
 import { Profile } from '../profile/schemas/profile.schema'
+import { mapUserToSafeObject, pick, omit } from '../utils/object.utils'
 
 @Injectable()
 export class AuthService {
@@ -72,9 +73,11 @@ export class AuthService {
 
     async signIn(signInDto: SignInDto): Promise<SignInResponseDto> {
         try {
-            const user = await this.userModel.findOne({
-                email: signInDto.email,
-            })
+            const user = await this.userModel
+                .findOne({
+                    email: signInDto.email,
+                })
+                .lean()
             if (!user) {
                 throw new RpcException({ statusCode: HttpStatus.UNAUTHORIZED, message: 'Invalid credentials!' })
             }
@@ -91,10 +94,12 @@ export class AuthService {
                 '30d',
                 this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
             )
+
+            const safeUser = mapUserToSafeObject(user)
             return {
                 accessToken,
                 refreshToken,
-                user: plainToInstance(SignUpResponseDto, user, { excludeExtraneousValues: true }),
+                user: safeUser,
             }
         } catch (error) {
             console.log(error)

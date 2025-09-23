@@ -7,25 +7,26 @@ import {
     SignInResponseDto,
     SignUpResponseDto,
 } from '@app/contracts/dtos/auth/auth.response.dto'
-import { RabbitRPC, RabbitSubscribe } from '../rabbitmq/rabbitmq.decorators'
+import { RabbitRPC } from '../rabbitmq/rabbitmq.decorators'
 
 @Controller()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @RabbitRPC({
-        exchange: 'user.direct',
+        exchange: 'user.topic',
         routingKey: AUTH_PATTERN.SIGN_UP,
-        queue: 'auth_signup_queue', // ✅ Queue riêng cho signup
+        queue: 'auth.queue', // ✅ Sử dụng queue chính auth.queue
     })
     async signUp(signUpDto: SignUpDto): Promise<SignUpResponseDto> {
-        return await this.authService.signUp(signUpDto)
+        const user = await this.authService.signUp(signUpDto)
+        return { ...user.toObject(), _id: user._id.toString() }
     }
 
     @RabbitRPC({
-        exchange: 'user.direct',
+        exchange: 'user.topic',
         routingKey: AUTH_PATTERN.SIGN_IN,
-        queue: 'auth_signin_queue', // ✅ Queue riêng cho signin
+        queue: 'auth.queue',
     })
     async signIn(signInDto: SignInDto): Promise<SignInResponseDto> {
         console.log('sign in')
@@ -35,11 +36,11 @@ export class AuthController {
     }
 
     @RabbitRPC({
-        exchange: 'user.direct',
+        exchange: 'user.topic',
         routingKey: AUTH_PATTERN.REFRESH_TOKEN,
-        queue: 'auth_refresh_queue', // ✅ Queue riêng cho refresh token
+        queue: 'auth.queue', // ✅ Sử dụng queue chính auth.queue
     })
     async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<RefreshTokenResponseDto> {
         return await this.authService.refreshToken(refreshTokenDto)
-    }
+    } 
 }

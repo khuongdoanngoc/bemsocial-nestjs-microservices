@@ -15,6 +15,7 @@ export class ProfileService {
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
         try {
+            console.log('Fetching profile for userId:', userId)
             const profile = await this.profileModel
                 .findOne({ user: new Types.ObjectId(userId) })
                 .populate('user')

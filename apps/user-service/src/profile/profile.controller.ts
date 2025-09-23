@@ -9,9 +9,9 @@ export class ProfileController {
     constructor(private readonly profileService: ProfileService) {}
 
     @RabbitRPC({
-        exchange: 'user.direct',
+        exchange: 'user.topic',
         routingKey: PROFILE_PATTERN.GET_PROFILE,
-        queue: 'profile_get_profile_queue',
+        queue: 'profile.queue',
     })
     async getProfileByUserId(payload: { userId: string }): Promise<GetProfileResponseDto> {
         return await this.profileService.getProfileByUserId(payload.userId)

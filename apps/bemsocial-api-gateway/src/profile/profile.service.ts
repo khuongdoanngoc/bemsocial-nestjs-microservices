@@ -9,7 +9,7 @@ export class ProfileService {
 
     async getProfileByUserId(userId: string): Promise<GetProfileResponseDto> {
         return await this.rabbitMQService.request<GetProfileResponseDto>({
-            exchange: 'user.direct',
+            exchange: 'user.topic',
             routingKey: PROFILE_PATTERN.GET_PROFILE,
             payload: { userId },
         })
@@ -17,7 +17,7 @@ export class ProfileService {
 
     async updateProfileByUserID(userId: string): Promise<void> {
         await this.rabbitMQService.request<void>({
-            exchange: 'user.direct',
+            exchange: 'user.topic',
             routingKey: PROFILE_PATTERN.UPDATE_PROFILE,
             payload: { userId },
         })

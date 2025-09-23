@@ -5,7 +5,7 @@ import * as amqp from 'amqplib'
 export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     private connection: amqp.Connection
     private channel: amqp.Channel
-    private readonly uri = 'amqp://localhost:5672'
+    private readonly uri = 'amqp://guest:guest@localhost:5672'
 
     async onModuleInit() {
         await this.connect()
@@ -32,13 +32,13 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     }
 
     private async setupExchangesAndQueues() {
-        // Tạo exchanges
-        await this.channel.assertExchange('user.direct', 'direct', { durable: true })
+        // Tạo exchanges - Topic exchange để hỗ trợ wildcard routing patterns
+        await this.channel.assertExchange('user.topic', 'topic', { durable: true })
 
-        // Tạo queues
-        await this.channel.assertQueue('user_queue', { durable: true })
+        // API Gateway không cần tạo queues cho consuming, chỉ cần exchange để publish
+        // Queues sẽ được tạo bởi User Service (auth.queue và profile.queue)
 
-        console.log('✅ RabbitMQ exchanges and queues setup completed')
+        console.log('✅ API Gateway RabbitMQ exchanges setup completed')
     }
  
     async request<T>(options: { exchange: string; routingKey: string; payload: any; timeout?: number }): Promise<T> {

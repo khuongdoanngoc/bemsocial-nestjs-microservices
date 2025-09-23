@@ -13,7 +13,7 @@ export class AuthService {
     async signUp(signUpDto: SignUpDto) {
         try {
             const user = await this.rabbitMQService.request<SignUpResponseDto>({
-                exchange: 'user.direct',
+                exchange: 'user.topic',
                 routingKey: AUTH_PATTERN.SIGN_UP,
                 payload: signUpDto,
             })
@@ -27,7 +27,7 @@ export class AuthService {
 
     async signIn(signInDto: SignInDto) {
         return await this.rabbitMQService.request<SignInResponseDto>({
-            exchange: 'user.direct',
+            exchange: 'user.topic',
             routingKey: AUTH_PATTERN.SIGN_IN,
             payload: signInDto,
         })
@@ -35,7 +35,7 @@ export class AuthService {
 
     async refreshToken(refreshTokenDto: RefreshTokenDto) {
         return await this.rabbitMQService.request<RefreshTokenResponseDto>({
-            exchange: 'user.direct',
+            exchange: 'user.topic',
             routingKey: AUTH_PATTERN.REFRESH_TOKEN,
             payload: refreshTokenDto,
         })

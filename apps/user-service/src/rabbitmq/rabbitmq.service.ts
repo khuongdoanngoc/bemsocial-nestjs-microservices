@@ -43,20 +43,21 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     }
 
     private async setupExchangesAndQueues() {
-        // Tạo exchanges
-        await this.channel.assertExchange('user.direct', 'direct', { durable: true })
+        // Tạo exchanges - Topic exchange để hỗ trợ wildcard routing patterns
+        await this.channel.assertExchange('user.topic', 'topic', { durable: true })
 
-        // ✅ Tạo queues riêng biệt cho mỗi auth operation
-        await this.channel.assertQueue('auth_signup_queue', { durable: true      })
-        await this.channel.assertQueue('auth_signin_queue', { durable: true })
-        await this.channel.assertQueue('auth_refresh_queue', { durable: true })
-        await this.channel.assertQueue('profile_get_profile_queue', { durable: true })
-        await this.channel.assertQueue('profile_update_profile_queue', { durable: true })
+        // ✅ Tạo 2 queue chính: auth.queue và profile.queue
+        await this.channel.assertQueue('auth.queue', { durable: true })
+        await this.channel.assertQueue('profile.queue', { durable: true })
 
         console.log('✅ User Service RabbitMQ exchanges and queues setup completed')
     } 
 
     private async registerHandlers() {
+        // Tìm controllers và tạo method mappings
+        const authMethods = new Map<string, { instance: any; methodName: string }>()
+        const profileMethods = new Map<string, { instance: any; methodName: string }>()
+
         const controllers = this.discoveryService.getControllers()
 
         for (const controller of controllers) {
@@ -71,60 +72,54 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
 
             for (const methodName of methodNames) {
                 const methodRef = instance[methodName]
-
-                // Check for RabbitSubscribe
-                const subscribeMetadata = this.reflector.get(RABBIT_HANDLER, methodRef)
-                if (subscribeMetadata) {
-                    await this.registerSubscribeHandler(instance, methodName, subscribeMetadata)
-                }
-
-                // Check for RabbitRPC
                 const rpcMetadata = this.reflector.get(RABBIT_RPC_HANDLER, methodRef)
+                
                 if (rpcMetadata) {
-                    await this.registerRPCHandler(instance, methodName, rpcMetadata)
+                    const { routingKey } = rpcMetadata
+                    
+                    // Map routing keys to auth or profile methods
+                    if (routingKey.startsWith('auth.')) {
+                        authMethods.set(routingKey, { instance, methodName })
+                    } else if (routingKey.startsWith('profile.')) {
+                        profileMethods.set(routingKey, { instance, methodName })
+                    }
                 }
             }
         }
+
+        // Register queue handlers
+        await this.registerQueueHandler('auth.queue', authMethods)
+        await this.registerQueueHandler('profile.queue', profileMethods)
     }
 
-    private async registerSubscribeHandler(instance: any, methodName: string, metadata: any) {
-        const { exchange, routingKey, queue } = metadata
-
-        await this.channel.bindQueue(queue, exchange, routingKey)
+    private async registerQueueHandler(
+        queueName: string, 
+        methodMappings: Map<string, { instance: any; methodName: string }>
+    ) {
+        // Bind queue to exchange với wildcard pattern
+        const routingPattern = queueName === 'auth.queue' ? 'auth.*' : 'profile.*'
+        await this.channel.bindQueue(queueName, 'user.topic', routingPattern)
 
         await this.channel.consume(
-            queue,
+            queueName,
             async msg => {
                 if (msg) {
                     try {
+                        const routingKey = msg.fields.routingKey
                         const payload = JSON.parse(msg.content.toString())
-                        await instance[methodName](payload)
-                        this.channel.ack(msg)
-                    } catch (error) {
-                        console.error(`Error in ${methodName}:`, error)
-                        this.channel.nack(msg, false, false)
-                    }
-                }
-            },
-            { noAck: false },
-        )
+                        
+                        // Tìm method tương ứng với routing key
+                        const methodInfo = methodMappings.get(routingKey)
+                        if (!methodInfo) {
+                            console.error(`No handler found for routing key: ${routingKey}`)
+                            this.channel.nack(msg, false, false)
+                            return
+                        }
 
-        console.log(`✅ Registered subscribe handler: ${methodName} for ${routingKey}`)
-    }
-
-    private async registerRPCHandler(instance: any, methodName: string, metadata: any) {
-        const { exchange, routingKey, queue } = metadata
-
-        await this.channel.bindQueue(queue, exchange, routingKey)
-
-        await this.channel.consume(
-            queue,
-            async msg => {
-                if (msg) {
-                    try {
-                        const payload = JSON.parse(msg.content.toString())
+                        const { instance, methodName } = methodInfo
                         const result = await instance[methodName](payload)
 
+                        // Gửi response nếu có replyTo (RPC pattern)
                         if (msg.properties.replyTo && msg.properties.correlationId) {
                             await this.channel.sendToQueue(
                                 msg.properties.replyTo,
@@ -134,10 +129,11 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
                         }
 
                         this.channel.ack(msg)
+                        console.log(`✅ Processed ${routingKey} successfully`)
                     } catch (error) {
-                        console.error(`Error in RPC ${methodName}:`, error)
+                        console.error(`Error processing message in ${queueName}:`, error)
 
-                        // Gửi error response thay vì chỉ nack
+                        // Gửi error response cho RPC pattern
                         if (msg.properties.replyTo && msg.properties.correlationId) {
                             const errorResponse = {
                                 error: true,
@@ -156,14 +152,14 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
                             }
                         }
 
-                        this.channel.ack(msg) // Ack message để không retry
+                        this.channel.ack(msg) // Ack để không retry
                     }
                 }
             },
             { noAck: false },
         )
 
-        console.log(`✅ Registered RPC handler: ${methodName} for ${routingKey}`)
+        console.log(`✅ Registered queue handler for ${queueName} with pattern ${routingPattern}`)
     }
 
     private async disconnect() {

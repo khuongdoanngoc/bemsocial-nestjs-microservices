@@ -1,0 +1,157 @@
+### Variables
+@baseUrl = http://localhost:3000
+@userId = 68cd3ed4f14824676db4ce9e
+@authToken = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4Y2QzZWQ0ZjE0ODI0Njc2ZGI0Y2U5ZSIsImVtYWlsIjoiZ3Vlc3RAZ3Vlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTg2MTU2NjgsImV4cCI6MTc1ODYxOTI2OH0.dRIKYwfqBc33vqiHSswlkfi-ubmh3AP0ibsxEIZcfvw
+
+### 1. Tạo Post mới
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Đây là post test đầu tiên! 🚀",
+  "images": [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg"
+  ]
+}
+
+### 2. Lấy tất cả posts (để xem post vừa tạo)
+GET {{baseUrl}}/posts?page=1&limit=10
+Authorization: {{authToken}}
+
+### 3. Lấy post theo ID (thay POST_ID bằng ID thực từ response trước)
+@postId = REPLACE_WITH_ACTUAL_POST_ID
+GET {{baseUrl}}/posts/{{postId}}
+Authorization: {{authToken}}
+
+### 4. Update Post
+PUT {{baseUrl}}/posts/{{postId}}
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Post đã được cập nhật! ✨ Nội dung mới với emoji",
+  "images": [
+    "https://example.com/updated-image1.jpg"
+  ]
+}
+
+### 5. Lấy posts của user cụ thể
+GET {{baseUrl}}/posts/user/{{userId}}?page=1&limit=5
+Authorization: {{authToken}}
+
+### 6. Like Post
+POST {{baseUrl}}/posts/{{postId}}/like
+Authorization: {{authToken}}
+
+### 7. Unlike Post  
+DELETE {{baseUrl}}/posts/{{postId}}/like
+Authorization: {{authToken}}
+
+### 8. Xem likes của post
+GET {{baseUrl}}/posts/{{postId}}/likes?page=1&limit=10
+Authorization: {{authToken}}
+
+### 9. Xóa Post
+DELETE {{baseUrl}}/posts/{{postId}}
+Authorization: {{authToken}}
+
+### 10. Verify post đã bị xóa (should return 404)
+GET {{baseUrl}}/posts/{{postId}}
+Authorization: {{authToken}}
+
+### ========== COMMENT TESTS ==========
+
+### 11. Tạo Comment cho post
+POST {{baseUrl}}/comments
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Đây là comment test! 💬",
+  "postId": "{{postId}}"
+}
+
+### 12. Lấy comments của post
+GET {{baseUrl}}/comments/post/{{postId}}?page=1&limit=10
+Authorization: {{authToken}}
+
+### 13. Update Comment (thay COMMENT_ID bằng ID thực)
+@commentId = REPLACE_WITH_ACTUAL_COMMENT_ID
+PUT {{baseUrl}}/comments/{{commentId}}
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Comment đã được cập nhật! 🔄"
+}
+
+### 14. Xóa Comment
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: {{authToken}}
+
+### ========== ERROR TESTS ==========
+
+### 15. Test tạo post với content rỗng (should fail validation)
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "",
+  "images": []
+}
+
+### 16. Test update post không tồn tại (should return 404)
+PUT {{baseUrl}}/posts/507f1f77bcf86cd799439011
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Test update post không tồn tại"
+}
+
+### 17. Test xóa post không tồn tại (should return 404)
+DELETE {{baseUrl}}/posts/507f1f77bcf86cd799439011
+Authorization: {{authToken}}
+
+### 18. Test không có authorization (should return 401)
+GET {{baseUrl}}/posts
+
+### ========== BULK DATA TESTS ==========
+
+### 19. Tạo nhiều posts để test pagination
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Post số 1 cho test pagination 📝"
+}
+
+###
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Post số 2 cho test pagination 📄"
+}
+
+###
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: {{authToken}}
+
+{
+  "content": "Post số 3 cho test pagination 📋"
+}
+
+### 20. Test pagination với limit nhỏ
+GET {{baseUrl}}/posts?page=1&limit=2
+Authorization: {{authToken}}
+
+###
+GET {{baseUrl}}/posts?page=2&limit=2
+Authorization: {{authToken}}

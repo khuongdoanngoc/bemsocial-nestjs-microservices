@@ -34,9 +34,10 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     private async setupExchangesAndQueues() {
         // Tạo exchanges - Topic exchange để hỗ trợ wildcard routing patterns
         await this.channel.assertExchange('user.topic', 'topic', { durable: true })
+        await this.channel.assertExchange('post.topic', 'topic', { durable: true })
 
         // API Gateway không cần tạo queues cho consuming, chỉ cần exchange để publish
-        // Queues sẽ được tạo bởi User Service (auth.queue và profile.queue)
+        // Queues sẽ được tạo bởi các microservices (user-service, post-service)
 
         console.log('✅ API Gateway RabbitMQ exchanges setup completed')
     }

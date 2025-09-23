@@ -170,6 +170,23 @@ export class AuthService {
         return token
     }
 
+    async getUsersByIds(userIds: string[]) {
+        try {
+            const users = await this.userModel
+                .find({ _id: { $in: userIds } })
+                .select('firstName lastName email avatar role createdAt updatedAt')
+                .lean()
+
+            return users.map(user => mapUserToSafeObject(user))
+        } catch (error) {
+            console.error('Error fetching users by IDs:', error)
+            throw new RpcException({
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to fetch users',
+            })
+        }
+    }
+
     private async createDefaultProfile(user: User) {
         try {
             const defaultProfile = new this.profileModel({

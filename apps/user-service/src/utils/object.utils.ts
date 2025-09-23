@@ -34,6 +34,7 @@ export function mapUserToSafeObject(user: any) {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        avatar: user.avatar,
         role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

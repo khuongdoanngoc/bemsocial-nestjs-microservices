@@ -42,5 +42,14 @@ export class AuthController {
     })
     async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<RefreshTokenResponseDto> {
         return await this.authService.refreshToken(refreshTokenDto)
+    }
+
+    @RabbitRPC({
+        exchange: 'user.topic',
+        routingKey: AUTH_PATTERN.GET_USERS_BY_IDS,
+        queue: 'auth.queue',
+    })
+    async getUsersByIds(payload: { userIds: string[] }) {
+        return await this.authService.getUsersByIds(payload.userIds)
     } 
 }

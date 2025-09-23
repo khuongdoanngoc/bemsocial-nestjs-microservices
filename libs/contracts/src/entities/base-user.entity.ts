@@ -9,7 +9,7 @@ export abstract class BaseUser extends Document {
     @Prop({ required: true })
     firstName: string
 
-    @Prop({ nullable: true })
+    @Prop({ nullable: true, default: '' })
     lastName: string
 
     @Prop({ required: true, unique: true })
@@ -18,8 +18,8 @@ export abstract class BaseUser extends Document {
     @Prop({ type: String, enum: ROLES, default: ROLES.USER })
     role: ROLES
 
-    @Prop()
-    avatar?: string
+    @Prop({ nullable: true, default: '' })
+    avatar: string
 
     @Prop({ type: Date, default: Date.now })
     createdAt: Date

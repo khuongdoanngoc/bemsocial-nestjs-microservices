@@ -1,14 +1,16 @@
-import { Body, Controller, HttpStatus } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Req, Res } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { Post } from '@nestjs/common'
-import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
+import { SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
 import { ApiResponseDto } from '@app/contracts/dtos/api/api.response.dto'
 import {
+    GetMeResponseDto,
     RefreshTokenResponseDto,
     SignInResponseDto,
     SignUpResponseDto,
 } from '@app/contracts/dtos/auth/auth.response.dto'
 import { Public } from './decorators/public.decorator'
+import { Request, Response } from 'express'
 
 @Controller('auth')
 export class AuthController {
@@ -27,23 +29,46 @@ export class AuthController {
     }
 
     @Public()
+    @HttpCode(HttpStatus.OK)
     @Post('sign-in')
-    async signIn(@Body() signInDto: SignInDto): Promise<ApiResponseDto<SignInResponseDto>> {
+    async signIn(
+        @Body() signInDto: SignInDto,
+        @Res({ passthrough: true }) response: Response,
+    ): Promise<ApiResponseDto<SignInResponseDto>> {
         const user = await this.authService.signIn(signInDto)
+        response.cookie('refresh-token', user.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        })
         return {
             statusCode: HttpStatus.OK,
             message: 'User signed in successfully!',
             data: user,
         }
-    } 
+    }
 
     @Public()
     @Post('refresh-token')
-    async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<ApiResponseDto<RefreshTokenResponseDto>> {
+    async refreshToken(@Req() request: Request): Promise<ApiResponseDto<RefreshTokenResponseDto>> {
+        const refreshTokenDto = {
+            refreshToken: request.cookies['refresh-token'],
+        }
         const data = await this.authService.refreshToken(refreshTokenDto)
         return {
             statusCode: HttpStatus.OK,
             message: 'Token refreshed successfully!',
+            data,
+        }
+    }
+
+    @Get('me')
+    async getMe(@Req() request): Promise<ApiResponseDto<GetMeResponseDto>> {
+        const data = await this.authService.getMe(request.user.id)
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'User fetched successfully!',
             data,
         }
     }

@@ -2,7 +2,7 @@ import { AUTH_PATTERN } from '@app/contracts/dtos/auth/auth.pattern'
 import { RefreshTokenDto, SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
 import { Injectable } from '@nestjs/common'
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service'
-import { SignInResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
+import { GetMeResponseDto, SignInResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
 import { RefreshTokenResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
 import { SignUpResponseDto } from '@app/contracts/dtos/auth/auth.response.dto'
 
@@ -39,5 +39,14 @@ export class AuthService {
             routingKey: AUTH_PATTERN.REFRESH_TOKEN,
             payload: refreshTokenDto,
         })
+    }
+
+    async getMe(id: string) {
+        const data = await this.rabbitMQService.request<GetMeResponseDto>({
+            exchange: 'user.topic',
+            routingKey: AUTH_PATTERN.GET_USERS_BY_ID,
+            payload: id,
+        })
+        return data
     }
 }

@@ -46,10 +46,10 @@ export class AuthController {
 
     @RabbitRPC({
         exchange: 'user.topic',
-        routingKey: AUTH_PATTERN.GET_USERS_BY_IDS,
+        routingKey: AUTH_PATTERN.GET_USERS_BY_ID,
         queue: 'auth.queue',
     })
-    async getUsersByIds(payload: { userIds: string[] }) {
-        return await this.authService.getUsersByIds(payload.userIds)
-    } 
+    async getUsersById(id: string) {
+        return await this.authService.getUsersById(id)
+    }
 }

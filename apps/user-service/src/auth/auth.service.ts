@@ -170,10 +170,10 @@ export class AuthService {
         return token
     }
 
-    async getUsersByIds(userIds: string[]) {
+    async getUsersById(userId: string) {
         try {
             const users = await this.userModel
-                .find({ _id: { $in: userIds } })
+                .find({ _id: userId })
                 .select('firstName lastName email avatar role createdAt updatedAt')
                 .lean()
 

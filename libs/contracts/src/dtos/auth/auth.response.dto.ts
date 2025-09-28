@@ -39,3 +39,29 @@ export class RefreshTokenResponseDto {
     @Expose()
     accessToken: string
 }
+
+export class GetMeResponseDto {
+    @Expose()
+    _id: Types.ObjectId
+
+    @Expose()
+    email: string
+
+    @Expose()
+    firstName: string
+
+    @Expose()
+    lastName: string
+
+    @Expose()
+    role: string
+
+    @Expose()
+    avatar?: string
+
+    @Expose()
+    createdAt: Date
+
+    @Expose()
+    updatedAt: Date
+}

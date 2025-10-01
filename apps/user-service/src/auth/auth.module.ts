@@ -6,7 +6,6 @@ import { RefreshToken } from './schemas/refresh-token.schema'
 import { User } from './schemas/user.schema'
 import { JwtService } from '@nestjs/jwt'
 import { MongooseModule, SchemaFactory } from '@nestjs/mongoose'
-import { ProfileService } from '../profile/profile.service'
 import { ProfileModule } from '../profile/profile.module'
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module'
 
@@ -20,6 +19,6 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module'
         RabbitMQModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtService, ProfileService],
+    providers: [AuthService, JwtService],
 })
 export class AuthModule {}

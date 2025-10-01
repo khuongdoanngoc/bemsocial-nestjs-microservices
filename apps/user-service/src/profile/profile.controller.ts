@@ -26,7 +26,8 @@ export class ProfileController {
     async updateProfileByUserId(payload: {
         userId: string
         updateProfile: UpdateProfileDTO
+        files: { avatar?: Express.Multer.File; cover?: Express.Multer.File }
     }): Promise<GetProfileResponseDto> {
-        return await this.profileService.updateProfileByUserId(payload.userId, payload.updateProfile)
+        return await this.profileService.updateProfileByUserId(payload.userId, payload.updateProfile, payload.files)
     }
 }

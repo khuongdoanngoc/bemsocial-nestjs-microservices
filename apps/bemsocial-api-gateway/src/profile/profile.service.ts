@@ -16,11 +16,15 @@ export class ProfileService {
         })
     }
 
-    async updateProfileByUserID(userId: string, updateProfile: UpdateProfileDTO): Promise<GetProfileResponseDto> {
+    async updateProfileByUserID(
+        userId: string,
+        updateProfile: UpdateProfileDTO,
+        files: { avatar?: Express.Multer.File; cover?: Express.Multer.File },
+    ): Promise<GetProfileResponseDto> {
         return await this.rabbitMQService.request<GetProfileResponseDto>({
             exchange: 'user.topic',
             routingKey: PROFILE_PATTERN.UPDATE_PROFILE,
-            payload: { userId, updateProfile },
+            payload: { userId, updateProfile, files },
         })
     }
 }

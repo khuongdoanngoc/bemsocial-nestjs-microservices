@@ -8,6 +8,8 @@ import { JwtService } from '@nestjs/jwt'
 import { MongooseModule, SchemaFactory } from '@nestjs/mongoose'
 import { ProfileModule } from '../profile/profile.module'
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module'
+import { PassportModule } from '@nestjs/passport'
+import { GoogleStrategy } from './strategies/google.strategy'
 
 @Module({
     imports: [
@@ -17,8 +19,9 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module'
         ]),
         ProfileModule,
         RabbitMQModule,
+        PassportModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtService],
+    providers: [AuthService, JwtService, GoogleStrategy],
 })
 export class AuthModule {}

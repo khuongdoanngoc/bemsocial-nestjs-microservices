@@ -1,6 +1,7 @@
 import { Prop, Schema } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
 import { ROLES } from '../dtos/enums/roles.enum'
+import { PROVIDERS } from '../dtos/enums/providers.enum'
 
 @Schema({ timestamps: true })
 export abstract class BaseUser extends Document {
@@ -20,6 +21,12 @@ export abstract class BaseUser extends Document {
 
     @Prop({ nullable: true, default: '' })
     avatar: string
+
+    @Prop({ nullable: true, default: null })
+    googleId: string
+
+    @Prop({ type: String, enum: PROVIDERS, nullable: true, default: PROVIDERS.LOCAL })
+    provider: PROVIDERS
 
     @Prop({ type: Date, default: Date.now })
     createdAt: Date

@@ -46,6 +46,15 @@ export class AuthController {
 
     @RabbitRPC({
         exchange: 'user.topic',
+        routingKey: AUTH_PATTERN.GOOGLE_AUTH,
+        queue: 'auth.queue',
+    })
+    async googleAuth(user: any): Promise<any> {
+        return await this.authService.handleGoogleValidate(user)
+    }
+
+    @RabbitRPC({
+        exchange: 'user.topic',
         routingKey: AUTH_PATTERN.GET_USERS_BY_ID,
         queue: 'auth.queue',
     })

@@ -49,4 +49,12 @@ export class AuthService {
         })
         return data
     }
+
+    async googleAuth(user: any) {
+        return await this.rabbitMQService.request<any>({
+            exchange: 'user.topic',
+            routingKey: AUTH_PATTERN.GOOGLE_AUTH,
+            payload: user,
+        })
+    }
 }

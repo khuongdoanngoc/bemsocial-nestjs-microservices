@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Req, Res } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Req, Res, UseGuards } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { Post } from '@nestjs/common'
 import { SignInDto, SignUpDto } from '@app/contracts/dtos/auth/auth.request.dto'
@@ -11,6 +11,7 @@ import {
 } from '@app/contracts/dtos/auth/auth.response.dto'
 import { Public } from './decorators/public.decorator'
 import { Request, Response } from 'express'
+import { GoogleOAuthGuard } from './guards/google-auth.guard'
 
 @Controller('auth')
 export class AuthController {
@@ -61,6 +62,29 @@ export class AuthController {
             message: 'Token refreshed successfully!',
             data,
         }
+    }
+
+    @Public()
+    @Get('google')
+    @UseGuards(GoogleOAuthGuard)
+    async googleAuth(@Req() request: Request) {}
+
+    @Public()
+    @Get('google/callback')
+    @UseGuards(GoogleOAuthGuard)
+    async googleAuthRedirect(@Req() req, @Res({ passthrough: true }) response: Response): Promise<void> {
+        const result = await this.authService.googleAuth(req.user)
+
+        response.cookie('refresh-token', result.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        })
+
+        // Redirect về frontend với access token
+        const frontendUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${result.accessToken}`
+        response.redirect(frontendUrl)
     }
 
     @Get('me')

@@ -16,6 +16,7 @@ import { RefreshToken } from './schemas/refresh-token.schema'
 import { InjectModel } from '@nestjs/mongoose'
 import { Profile } from '../profile/schemas/profile.schema'
 import { mapUserToSafeObject, pick, omit } from '../utils/object.utils'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 export class AuthService {
@@ -202,6 +203,46 @@ export class AuthService {
             await defaultProfile.save()
         } catch (error) {
             console.log('Error creating default profile', error)
+        }
+    }
+ 
+    async handleGoogleValidate(user: User) {
+        try {
+            const existingUser = await this.userModel.findOne({
+                email: user.email,
+            })
+            if (existingUser) {
+                return existingUser
+            }
+            const newUser = new this.userModel({
+                ...user,
+                password: null,
+            })
+            await newUser.save()
+            await this.createDefaultProfile(newUser)
+
+            const accessToken = await this.generateTokens(
+                newUser,
+                '1h',
+                this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+            )
+            const refreshToken = await this.generateTokens(
+                newUser,
+                '30d',
+                this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+            )
+            const safeUser = mapUserToSafeObject(newUser)
+            return {
+                accessToken,
+                refreshToken,
+                user: safeUser,
+            }
+        } catch (error) {
+            console.log('Error validating user', error)
+            throw new RpcException({
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to validate user',
+            })
         }
     }
 }
